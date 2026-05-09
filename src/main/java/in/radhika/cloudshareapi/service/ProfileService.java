@@ -1,29 +1,28 @@
 package in.radhika.cloudshareapi.service;
 
-import java.time.Instant;
-
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Service;
-
 import in.radhika.cloudshareapi.document.ProfileDocument;
 import in.radhika.cloudshareapi.dto.ProfileDTO;
 import in.radhika.cloudshareapi.repository.ProfileRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+
+import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
 public class ProfileService {
+
     private final ProfileRepository profileRepository;
 
     public ProfileDTO createProfile(ProfileDTO profileDTO) {
 
-        if(profileRepository.existsByClerkId(profileDTO.getClerkId())){
-              return updateProfile(profileDTO);
+        if (profileRepository.existsByClerkId(profileDTO.getClerkId())) {
+            return updateProfile(profileDTO);
         }
 
-
-              ProfileDocument profile = ProfileDocument.builder()
+        ProfileDocument profile = ProfileDocument.builder()
                 .clerkId(profileDTO.getClerkId())
                 .email(profileDTO.getEmail())
                 .firstName(profileDTO.getFirstName())
@@ -48,10 +47,10 @@ public class ProfileService {
 
     }
 
-    public ProfileDTO updateProfile(ProfileDTO profileDTO){
-      ProfileDocument existingProfile = profileRepository.findByClerkId(profileDTO.getClerkId());
+    public ProfileDTO updateProfile(ProfileDTO profileDTO) {
+        ProfileDocument existingProfile = profileRepository.findByClerkId(profileDTO.getClerkId());
 
-              if (existingProfile != null) {
+        if (existingProfile != null) {
             //update fields if provided
             if (profileDTO.getEmail() != null && !profileDTO.getEmail().isEmpty()) {
                 existingProfile.setEmail(profileDTO.getEmail());
@@ -89,6 +88,7 @@ public class ProfileService {
         return profileRepository.existsByClerkId(clerkId);
     }
 
+
     public void deleteProfile(String clerkId) {
         ProfileDocument existingProfile = profileRepository.findByClerkId(clerkId);
         if (existingProfile != null) {
@@ -97,24 +97,11 @@ public class ProfileService {
     }
 
     public ProfileDocument getCurrentProfile() {
-    if (SecurityContextHolder.getContext().getAuthentication() == null) {
-        throw new UsernameNotFoundException("User not authenticated");
+        if (SecurityContextHolder.getContext().getAuthentication() == null) {
+            throw new UsernameNotFoundException("User not authenticated");
+        }
+
+        String clerkId = SecurityContextHolder.getContext().getAuthentication().getName();
+        return profileRepository.findByClerkId(clerkId);
     }
-
-    String clerkId =
-            SecurityContextHolder.getContext()
-                    .getAuthentication()
-                    .getName();
-
-    ProfileDocument profile =
-            profileRepository.findByClerkId(clerkId);
-
-    if (profile == null) {
-        throw new UsernameNotFoundException(
-                "Profile not found for clerkId: " + clerkId
-        );
-    }
-
-    return profile;
-}
 }
